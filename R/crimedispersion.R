@@ -33,7 +33,7 @@ crimedispersion <- function
     library(ggplot2)
     setwd("C:/Users/jhr/OneDrive - Temple University/Work/CrimeDispersion/Sample data")
     burg <- rio::import("robbery.csv")
-    burg <- rio::import("PPD_sectors_05-06_robberies.csv")
+    robbery <- rio::import("PPD_sectors_05-06_robberies.csv")
 
     robbery <- robbery %>%
       mutate (Robbery05 = as.numeric(Robbery05)) %>%
