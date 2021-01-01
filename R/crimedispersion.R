@@ -56,6 +56,10 @@ crimedispersion <- function
 
 # End of DEBUG start ------------------------------------------------------
 
+
+  library(dplyr)
+  library(ggplot2)
+
   # ERROR CHECKING. Has user passed a data frame?
   if (!is.data.frame(data1)) {
       stop("The input data specified is not a data.frame object. Please fix.")
@@ -203,8 +207,8 @@ crimedispersion <- function
   NumContributed <- length(which(df2$chg > 0))
   ODI <- NumContributed / source_rows
   NCDI <- (numPositive - NumContributed) / source_rows
-  ODI.text <- paste("O.D.I. = ", format(ODI, digits = 3), "\nafter removing",
-                    NumContributed, "units")
+  ODI.text <- paste("O.D.I. = ", format(ODI, digits = 3), "after \nadjusting",
+                    NumContributed, "of the", source_rows, "units")
 
 # Tidy up names for data frame --------------------------------------------
 
