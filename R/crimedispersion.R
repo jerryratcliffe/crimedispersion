@@ -9,8 +9,6 @@
 #' @param time2 a vector of crime counts at time 2 (numeric object)
 #' @return A list containing a data frame, values, and a plot
 #' @import dplyr ggplot2
-#' @examples
-#' result <- crimedispersion (dcburglaries, 'County', 'Robbery05', 'Robbery06', "match")
 #' @export
 #' @references Ratcliffe, JH (2010) The spatial dependency of crime increase dispersion, Security Journal, 23(1): 18-36.
 #'
@@ -19,50 +17,13 @@
 #'
 
 crimedispersion <- function
- (data1, unitID, time1, time2, method = "match") {
+(data1, unitID, time1, time2, method = "match") {
 
-# Start here --------------------------------------------------------------
-
-  DEBUG <- FALSE
-
-  if (DEBUG) {
-
-    rm(list = ls())
-
-    library(dplyr)
-    library(ggplot2)
-    setwd("C:/Users/jhr/OneDrive - Temple University/Work/CrimeDispersion/Sample data")
-    burg <- rio::import("robbery.csv")
-    robbery <- rio::import("PPD_sectors_05-06_robberies.csv")
-
-    robbery <- robbery %>%
-      mutate (Robbery05 = as.numeric(Robbery05)) %>%
-      mutate (Robbery06 = as.numeric(Robbery06))
-
-    data1 <- burg
-    unitID <- "County"
-    time1 <- "Robbery05"
-    time2 <- "Robbery06"
-    method <- "match"
-    method <- "remove"
-
-    data1 <- robbery
-    unitID <- "Sector"
-    time1 <- "Robbery05"
-    time2 <- "Robbery06"
-    method <- "match"
-
-  }
-
-# End of DEBUG start ------------------------------------------------------
-
-
-  library(dplyr)
-  library(ggplot2)
+  adjusted <- Ut1 <- Ut2 <- Rt1 <- Rt2 <- chg <- pct <- NULL
 
   # ERROR CHECKING. Has user passed a data frame?
   if (!is.data.frame(data1)) {
-      stop("The input data specified is not a data.frame object. Please fix.")
+    stop("The input data specified is not a data.frame object. Please fix.")
   }
 
   # Build a local data.frame and populate with passed arguments
@@ -80,10 +41,10 @@ crimedispersion <- function
 
   # ERROR CHECKING. Did user pass numeric columns where needed?
   if (!class(df1$time1)[1] == "numeric") {
-      stop("The time1 field is not a numeric object. Please fix.")
+    stop("The time1 field is not a numeric object. Please fix.")
   }
   if (!class(df1$time2)[1] == "numeric") {
-      stop("The time2 field is not a numeric object. Please fix.")
+    stop("The time2 field is not a numeric object. Please fix.")
   }
 
   # ERROR CHECKING:
@@ -91,7 +52,7 @@ crimedispersion <- function
   # That's a fun project for later... ;-)
 
 
-# Set up parameters -------------------------------------------------------
+  # Set up parameters -------------------------------------------------------
 
   # Set up initial parameters
   count_Rt1 <- sum(df1$time1)
@@ -104,7 +65,6 @@ crimedispersion <- function
     mutate (diff = time2 - time1) %>%
     mutate (diffPct = 100*(diff/time1)) %>%
     arrange(desc(diff))
-  if (DEBUG) df3 <- df1 #nice to have a backup for reference debugging
 
   # Grab some basic statistics here
   numPositive <- length(which(df1$diff > 0))
@@ -129,116 +89,116 @@ crimedispersion <- function
   df2 <- df2 %>% add_row(unit = "[ ALL AREAS ]", adjusted = 0,
                          Ut1 = 0, Ut2 = 0,
                          Rt1 = count_Rt1, Rt2 = count_Rt2,
-                  chg = chg_Rt1_Rt2, pct = pct_Rt1_Rt2)
+                         chg = chg_Rt1_Rt2, pct = pct_Rt1_Rt2)
 
   gain_from_row_removal <- row_to_remove <- NULL
 
-# Loop to cycle through each row of the data to figure which row to remove -----
-# While also looping through the ever-shrinking table each time
+  # Loop to cycle through each row of the data to figure which row to remove -----
+  # While also looping through the ever-shrinking table each time
 
   for (master_loop in 1:(source_rows)){
 
     df1 <- df1 %>%  # order the data frame
       arrange(desc(diff))
 
-        if (analysisMethod == "match"){
-         #### Zero change the row approach
-          count_Rt1_temp <- count_Rt1
-          count_Rt2_temp <- count_Rt2 - df1$diff[master_loop]
-          pct_Rt1_Rt2 <- ((count_Rt1_temp - count_Rt2_temp) / count_Rt1) *100
-        }
-        else { #analysisMethod == "remove"
-          #### Remove entire row approach
-           count_Rt1_temp <- count_Rt1 - df1$time1[master_loop]
-           count_Rt2_temp <- count_Rt2 - df1$time2[master_loop]
-           pct_Rt1_Rt2 <- ((count_Rt1_temp - count_Rt2_temp) / count_Rt1) *100
-        }
+    if (analysisMethod == "match"){
+      #### Zero change the row approach
+      count_Rt1_temp <- count_Rt1
+      count_Rt2_temp <- count_Rt2 - df1$diff[master_loop]
+      pct_Rt1_Rt2 <- ((count_Rt1_temp - count_Rt2_temp) / count_Rt1) *100
+    }
+    else { #analysisMethod == "remove"
+      #### Remove entire row approach
+      count_Rt1_temp <- count_Rt1 - df1$time1[master_loop]
+      count_Rt2_temp <- count_Rt2 - df1$time2[master_loop]
+      pct_Rt1_Rt2 <- ((count_Rt1_temp - count_Rt2_temp) / count_Rt1) *100
+    }
 
-        row_to_remove <- 1  # Always row 1, but this is a legacy from
-                            # when I used a different approach...
-                            # Here, the row we are removing is
-                            # stored in row_to_remove
+    row_to_remove <- 1  # Always row 1, but this is a legacy from
+    # when I used a different approach...
+    # Here, the row we are removing is
+    # stored in row_to_remove
 
-       if (analysisMethod == "remove"){
-         #### Remove entire row approach
-         #    This approach removes the impact of the area by subtracting
-         #    both Rt1 and Rt2
-           count_Rt1 <- count_Rt1 - df1$time1[row_to_remove]
-           count_Rt2 <- count_Rt2 - df1$time2[row_to_remove]
-           chg_Rt1_Rt2 <- count_Rt2 - count_Rt1
-           pct_Rt1_Rt2 <- (chg_Rt1_Rt2 / count_Rt1) *100
-           named_areas <- df1$unit[row_to_remove]
-       }
+    if (analysisMethod == "remove"){
+      #### Remove entire row approach
+      #    This approach removes the impact of the area by subtracting
+      #    both Rt1 and Rt2
+      count_Rt1 <- count_Rt1 - df1$time1[row_to_remove]
+      count_Rt2 <- count_Rt2 - df1$time2[row_to_remove]
+      chg_Rt1_Rt2 <- count_Rt2 - count_Rt1
+      pct_Rt1_Rt2 <- (chg_Rt1_Rt2 / count_Rt1) *100
+      named_areas <- df1$unit[row_to_remove]
+    }
 
     if (analysisMethod == "match"){
-        #### Zero change the row approach, as if Rt2 == Rt1 in the row
-        #    The best row to remove is has been exhaustively calculated
-        #    Here, the row we are removing is stored in row_to_remove
-          count_Rt1 <- count_Rt1
-          count_Rt2 <- count_Rt2 - df1$diff[row_to_remove]
-          chg_Rt1_Rt2 <- count_Rt2 - count_Rt1
-          pct_Rt1_Rt2 <- (chg_Rt1_Rt2 / count_Rt1) *100
-          named_areas <- df1$unit[row_to_remove]
+      #### Zero change the row approach, as if Rt2 == Rt1 in the row
+      #    The best row to remove is has been exhaustively calculated
+      #    Here, the row we are removing is stored in row_to_remove
+      count_Rt1 <- count_Rt1
+      count_Rt2 <- count_Rt2 - df1$diff[row_to_remove]
+      chg_Rt1_Rt2 <- count_Rt2 - count_Rt1
+      pct_Rt1_Rt2 <- (chg_Rt1_Rt2 / count_Rt1) *100
+      named_areas <- df1$unit[row_to_remove]
     }
 
     df2 <- df2 %>% add_row(unit = named_areas, adjusted = master_loop,
                            Ut1 = df1$time1[row_to_remove], Ut2 = df1$time2[row_to_remove],
                            Rt1 = count_Rt1, Rt2 = count_Rt2,
-                             chg = chg_Rt1_Rt2, pct = pct_Rt1_Rt2)
+                           chg = chg_Rt1_Rt2, pct = pct_Rt1_Rt2)
 
     # Adjust the row we just used in one of two ways:
-      # 1. remove the actual row entirely
+    # 1. remove the actual row entirely
     if (analysisMethod == "remove"){
       df1 <-df1[-c(row_to_remove), ]
     }
-      #2. adjust the Rt2 to match Rt1 resulting in a zero diff
-      #   but show that diff as < lowest diff in the data set so that
-      #   the program does not stall with too many zeros
+    #2. adjust the Rt2 to match Rt1 resulting in a zero diff
+    #   but show that diff as < lowest diff in the data set so that
+    #   the program does not stall with too many zeros
     if (analysisMethod == "match"){
       df1$time2[row_to_remove] <- df1$time1[row_to_remove]
       df1$diff[row_to_remove] <- -999 # this should be changed to always less than
-                                      # the lowest diff score in the data set
+      # the lowest diff score in the data set
     }
 
   } # end master_loop
 
 
-# Calculate ODI and NCDI indices -----------------------------------------
+  # Calculate ODI and NCDI indices -----------------------------------------
   NumContributed <- length(which(df2$chg > 0))
   ODI <- NumContributed / source_rows
   NCDI <- (numPositive - NumContributed) / source_rows
   ODI.text <- paste("O.D.I. = ", format(ODI, digits = 3), "after \nadjusting",
                     NumContributed, "of the", source_rows, "units")
 
-# Tidy up names for data frame --------------------------------------------
+  # Tidy up names for data frame --------------------------------------------
 
-df2 <- df2 %>%
+  df2 <- df2 %>%
     rename(unit_t1 = Ut1, unit_t2 = Ut2, region_t1 = Rt1, region_t2 = Rt2)
 
-# Plot --------------------------------------------------------------------
+  # Plot --------------------------------------------------------------------
 
-df3 <- df2
-plot.adjustment <- ""
-if (nrow(df3) > 101)  {
-  df3 <- df3[1:101, ]
-  plot.adjustment <- "Plot only shows first\n100 areas adjusted"
-}
+  df3 <- df2
+  plot.adjustment <- ""
+  if (nrow(df3) > 101)  {
+    df3 <- df3[1:101, ]
+    plot.adjustment <- "Plot only shows first\n100 areas adjusted"
+  }
 
 
-p <- ggplot(df3, aes(x=reorder(unit, adjusted), y=pct, group = 1)) +
+  p <- ggplot(df3, aes(x=reorder(unit, adjusted), y=pct, group = 1)) +
     geom_line(color="#3277a8") +
     geom_point(shape=21, color="white", fill="#3277a8", size=2) +
     geom_hline(color="grey", yintercept=0) +
     labs(title="Dispersion of crime rate change",
-          x ="Area adjusted", y = "Remaining crime rate for region") +
-  annotate(
-  geom = "curve", x = NumContributed+4, y = 1.5,
-  xend = NumContributed+1, yend = 0.2,
-  curvature = .2, arrow = arrow(length = unit(2, "mm"))
-  ) +
-  annotate(geom = "text", x = NumContributed+4.1, y = 1.5,
-           label = ODI.text, hjust = "left") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+         x ="Area adjusted", y = "Remaining crime rate for region") +
+    annotate(
+      geom = "curve", x = NumContributed+4, y = 1.5,
+      xend = NumContributed+1, yend = 0.2,
+      curvature = .2, arrow = arrow(length = unit(2, "mm"))
+    ) +
+    annotate(geom = "text", x = NumContributed+4.1, y = 1.5,
+             label = ODI.text, hjust = "left") +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
   if (plot.adjustment != "") {
     p <- p +
@@ -248,11 +208,11 @@ p <- ggplot(df3, aes(x=reorder(unit, adjusted), y=pct, group = 1)) +
   p
 
 
-# Create return list ------------------------------------------------------
+  # Create return list ------------------------------------------------------
 
   output <- list(df2, p, NumContributed, ODI, NCDI)
 
 
- return(output)
+  return(output)
 }
 
