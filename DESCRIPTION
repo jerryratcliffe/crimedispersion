@@ -1,12 +1,19 @@
 Package: crimedispersion
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Calculate Offense Dispersion Index Values
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Author: Jerry Ratcliffe
+Maintainer: Jerry Ratcliffe <jhr@temple.edu>
+Description: When crime changes from one time period to another (such as from year 
+    to year), it is sometimes useful to establish how widespread the crime increase covered. 
+    Was it across an entire city, or just limited to a few districts or precincts? The answer 
+    to this question may help decision-makers determine the extent of any serious crime 
+    increases. This package calculates an offense dispersion index that is the ratio of all 
+    sub-areas (units) within an overall region that contributed to a crime rate increase.   
+    For more information, see Ratcliffe, JH (2010) The spatial dependency of crime increase
+    dispersion, Security Journal, 23(1): 18-36. 
+    This article is available to download from jratcliffe.net
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.0
