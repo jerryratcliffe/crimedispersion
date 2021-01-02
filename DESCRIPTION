@@ -1,6 +1,6 @@
 Package: crimedispersion
 Type: Package
-Title: Calculate Offense Dispersion Index Values
+Title: Calculate Offense Dispersion Index
 Version: 0.1.0
 Author: Jerry Ratcliffe
 Maintainer: Jerry Ratcliffe <jhr@temple.edu>

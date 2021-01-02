@@ -19,7 +19,7 @@ crimedispersion(data1, unitID, time1, time2, method = "match")
 A list containing a data frame, values, and a plot
 }
 \description{
-A function to calculate the offence dispersion index (ODI) for crime counts
+A function to calculate the offense dispersion index (ODI) for crime counts
 in unit subregions of an overall region at two time periods, t1 and t2.
 }
 \references{

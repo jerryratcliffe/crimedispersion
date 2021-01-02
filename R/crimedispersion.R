@@ -1,6 +1,6 @@
 #' Calculate crime dispersion
 #'
-#' A function to calculate the offence dispersion index (ODI) for crime counts
+#' A function to calculate the offense dispersion index (ODI) for crime counts
 #' in unit subregions of an overall region at two time periods, t1 and t2.
 #'
 #' @param data1 data frame with a minimum of 3 columns with area ID, Rt1 count, Rt2 count
@@ -17,6 +17,7 @@
 crimedispersion <- function
 (data1, unitID, time1, time2, method = "match") {
 
+  # define variables to limit build warnings
   adjusted <- Ut1 <- Ut2 <- Rt1 <- Rt2 <- chg <- pct <- NULL
 
   # ERROR CHECKING. Has user passed a data frame?
@@ -37,7 +38,11 @@ crimedispersion <- function
     analysisMethod <- "match"
   }
 
+
   # ERROR CHECKING. Did user pass numeric columns where needed?
+  try (df1$time1 <- as.numeric(df1$time1), silent = TRUE)
+  try (df1$time2 <- as.numeric(df1$time2), silent = TRUE)
+
   if (!class(df1$time1)[1] == "numeric") {
     stop("The time1 field is not a numeric object. Please fix.")
   }
@@ -45,9 +50,10 @@ crimedispersion <- function
     stop("The time2 field is not a numeric object. Please fix.")
   }
 
-  # ERROR CHECKING:
+  # MORE ERROR CHECKING:
   # What if the user has NA or missing data?
-  # That's a fun project for later... ;-)
+  # What if the crime problem is decreasing?
+  # Fun tasks for later...
 
 
   # Set up parameters -------------------------------------------------------
@@ -91,22 +97,21 @@ crimedispersion <- function
 
   gain_from_row_removal <- row_to_remove <- NULL
 
-  # Loop to cycle through each row of the data to figure which row to remove -----
-  # While also looping through the ever-shrinking table each time
 
+  # Loop through each row of the data
   for (master_loop in 1:(source_rows)){
 
     df1 <- df1 %>%  # order the data frame
       arrange(desc(diff))
 
     if (analysisMethod == "match"){
-      #### Zero change the row approach
+      #### 'Zero change the row' approach
       count_Rt1_temp <- count_Rt1
       count_Rt2_temp <- count_Rt2 - df1$diff[master_loop]
       pct_Rt1_Rt2 <- ((count_Rt1_temp - count_Rt2_temp) / count_Rt1) *100
     }
     else { #analysisMethod == "remove"
-      #### Remove entire row approach
+      #### 'Remove entire row' approach, including remove t1 value
       count_Rt1_temp <- count_Rt1 - df1$time1[master_loop]
       count_Rt2_temp <- count_Rt2 - df1$time2[master_loop]
       pct_Rt1_Rt2 <- ((count_Rt1_temp - count_Rt2_temp) / count_Rt1) *100
@@ -139,6 +144,7 @@ crimedispersion <- function
       named_areas <- df1$unit[row_to_remove]
     }
 
+    # Add result to the output data frame
     df2 <- df2 %>% add_row(unit = named_areas, adjusted = master_loop,
                            Ut1 = df1$time1[row_to_remove], Ut2 = df1$time2[row_to_remove],
                            Rt1 = count_Rt1, Rt2 = count_Rt2,
@@ -213,8 +219,6 @@ crimedispersion <- function
   # Create return list ------------------------------------------------------
 
   output <- list(df2, p, NumContributed, ODI, NCDI)
-
-
   return(output)
 }
 
