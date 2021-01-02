@@ -12,9 +12,7 @@
 #' @export
 #' @references Ratcliffe, JH (2010) The spatial dependency of crime increase dispersion, Security Journal, 23(1): 18-36.
 #'
-#'
-#'
-#'
+
 
 crimedispersion <- function
 (data1, unitID, time1, time2, method = "match") {
