@@ -22,9 +22,6 @@ A list containing a data frame, values, and a plot
 A function to calculate the offence dispersion index (ODI) for crime counts
 in unit subregions of an overall region at two time periods, t1 and t2.
 }
-\examples{
-result <- crimedispersion (dcburglaries, 'County', 'Robbery05', 'Robbery06', "match")
-}
 \references{
 Ratcliffe, JH (2010) The spatial dependency of crime increase dispersion, Security Journal, 23(1): 18-36.
 }
